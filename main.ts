@@ -32,6 +32,8 @@ interface FolderMapping {
 	id: string; // Unique identifier for the folder
 	folderPath: string; // Path to the folder (e.g., "Archive", "Projects/Work")
 	displayName: string; // Human-readable name shown in menus
+	addCepochPrefix: boolean; // Whether to add cepoch prefix when moving to this folder
+	copyInsteadOfMove: boolean; // Whether to copy instead of move
 }
 
 // Default settings that are loaded when the plugin is first installed
@@ -41,31 +43,43 @@ const DEFAULT_SETTINGS: QuickMoveSettings = {
 			id: "archive",
 			folderPath: "Archive",
 			displayName: "Archive",
+			addCepochPrefix: false,
+			copyInsteadOfMove: false,
 		},
 		{
 			id: "inbox",
 			folderPath: "Inbox",
 			displayName: "Inbox",
+			addCepochPrefix: false,
+			copyInsteadOfMove: false,
 		},
 		{
 			id: "projects",
 			folderPath: "Projects",
 			displayName: "Projects",
+			addCepochPrefix: false,
+			copyInsteadOfMove: false,
 		},
 		{
 			id: "daily-notes",
 			folderPath: "Daily Notes",
 			displayName: "Daily Notes",
+			addCepochPrefix: false,
+			copyInsteadOfMove: false,
 		},
 		{
 			id: "templates",
 			folderPath: "Templates",
 			displayName: "Templates",
+			addCepochPrefix: false,
+			copyInsteadOfMove: false,
 		},
 		{
 			id: "resources",
 			folderPath: "Resources",
 			displayName: "Resources",
+			addCepochPrefix: false,
+			copyInsteadOfMove: false,
 		},
 	],
 };
@@ -113,8 +127,13 @@ export default class QuickMovePlugin extends Plugin {
 			this.addCommand({
 				id: `move-to-${mapping.id}`, // Unique ID for this command
 				name: `Move current file to ${mapping.displayName}`, // What users see in Command Palette
-				callback: () =>
-					this.moveCurrentFileToFolder(mapping.folderPath), // What happens when executed
+				callback: () => {
+					if (mapping.copyInsteadOfMove) {
+						this.duplicateFileToFolder(mapping.folderPath, mapping.addCepochPrefix);
+					} else {
+						this.moveCurrentFileToFolder(mapping.folderPath, mapping.addCepochPrefix);
+					}
+				},
 			});
 		});
 	}
@@ -185,7 +204,17 @@ export default class QuickMovePlugin extends Plugin {
 			this.app,
 			folders,
 			(selectedFolder) => {
-				this.moveCurrentFileToFolder(selectedFolder.path);
+				// Find the mapping for this folder to get its prefix setting
+				const mapping = this.settings.folderMappings.find(
+					(m) => m.folderPath === selectedFolder.path
+				);
+				const addPrefix = mapping?.addCepochPrefix ?? false;
+				const copyInstead = mapping?.copyInsteadOfMove ?? false;
+				if (copyInstead) {
+					this.duplicateFileToFolder(selectedFolder.path, addPrefix);
+				} else {
+					this.moveCurrentFileToFolder(selectedFolder.path, addPrefix);
+				}
 			},
 		);
 		modal.open();
@@ -213,7 +242,12 @@ export default class QuickMovePlugin extends Plugin {
 			this.app,
 			folders,
 			(selectedFolder) => {
-				this.duplicateFileToFolder(selectedFolder.path);
+				// Find the mapping for this folder to get its prefix setting
+				const mapping = this.settings.folderMappings.find(
+					(m) => m.folderPath === selectedFolder.path
+				);
+				const addPrefix = mapping?.addCepochPrefix ?? false;
+				this.duplicateFileToFolder(selectedFolder.path, addPrefix);
 			},
 		);
 		modal.open();
@@ -278,7 +312,7 @@ export default class QuickMovePlugin extends Plugin {
 	 * Creates a copy of the current file in the specified folder
 	 * Handles name conflicts by adding numbers (e.g., "file 1.md", "file 2.md")
 	 */
-	async duplicateFileToFolder(targetFolder: string) {
+	async duplicateFileToFolder(targetFolder: string, addPrefix: boolean = false) {
 		const activeFile = this.app.workspace.getActiveFile();
 
 		// Safety checks - make sure we have a valid file to work with
@@ -299,16 +333,18 @@ export default class QuickMovePlugin extends Plugin {
 			// Read the file's content so we can copy it
 			const content = await this.app.vault.read(activeFile);
 
+			// Process filename with prefix if enabled
+			const processedFileName = this.processFilenameWithPrefix(activeFile.name, addPrefix);
+
 			// Parse filename to handle conflicts intelligently
-			const fileName = activeFile.name;
 			const baseName =
-				fileName.substring(0, fileName.lastIndexOf(".")) || fileName;
+				processedFileName.substring(0, processedFileName.lastIndexOf(".")) || processedFileName;
 			const extension =
-				fileName.substring(fileName.lastIndexOf(".")) || "";
+				processedFileName.substring(processedFileName.lastIndexOf(".")) || "";
 
 			let newPath = targetFolder
-				? `${targetFolder}/${fileName}`
-				: fileName;
+				? `${targetFolder}/${processedFileName}`
+				: processedFileName;
 			let counter = 1;
 
 			// If file already exists, add numbers until we find an available name
@@ -321,7 +357,11 @@ export default class QuickMovePlugin extends Plugin {
 			}
 
 			// Create the duplicate file with the content
-			await this.app.vault.create(newPath, content);
+			const newFile = await this.app.vault.create(newPath, content);
+
+			// Open the newly created file in a new tab
+			await this.app.workspace.getLeaf('tab').openFile(newFile);
+
 			new Notice(
 				`Duplicated "${activeFile.name}" to ${targetFolder || "vault root"}`,
 			);
@@ -335,7 +375,7 @@ export default class QuickMovePlugin extends Plugin {
 	 * The core function - moves the current file to the specified folder
 	 * This is where the actual file movement magic happens
 	 */
-	async moveCurrentFileToFolder(targetFolder: string) {
+	async moveCurrentFileToFolder(targetFolder: string, addPrefix: boolean = false) {
 		const activeFile = this.app.workspace.getActiveFile();
 
 		// Safety checks first
@@ -353,10 +393,13 @@ export default class QuickMovePlugin extends Plugin {
 			// Create the destination folder if it doesn't exist
 			await this.ensureFolderExists(targetFolder);
 
+			// Process filename with prefix if enabled
+			const newFileName = this.processFilenameWithPrefix(activeFile.name, addPrefix);
+
 			// Build the new file path
 			const newPath = targetFolder
-				? `${targetFolder}/${activeFile.name}`
-				: activeFile.name;
+				? `${targetFolder}/${newFileName}`
+				: newFileName;
 
 			// Check for conflicts - we don't want to overwrite existing files
 			if (this.app.vault.getAbstractFileByPath(newPath)) {
@@ -374,6 +417,36 @@ export default class QuickMovePlugin extends Plugin {
 			console.error("Error moving file:", error);
 			new Notice(`Error moving file: ${error.message}`);
 		}
+	}
+
+	/**
+	 * Processes filename to add cepoch prefix if enabled
+	 * Removes old prefix if it exists (format: <prefix>_name)
+	 */
+	processFilenameWithPrefix(originalName: string, addPrefix: boolean): string {
+		if (!addPrefix) {
+			return originalName; // Return as-is if prefix feature is disabled
+		}
+
+		// Get cepoch (base36 encoded epoch reversed)
+		const cepoch = Math.floor(Date.now() / 1000).toString(36).split('').reverse().join('');
+
+		// Parse the filename to separate name and extension
+		const lastDotIndex = originalName.lastIndexOf(".");
+		const extension = lastDotIndex > 0 ? originalName.substring(lastDotIndex) : "";
+		const nameWithoutExt = lastDotIndex > 0 ? originalName.substring(0, lastDotIndex) : originalName;
+
+		// Check if the name already has a prefix (format: <prefix>_name)
+		const underscoreIndex = nameWithoutExt.indexOf("_");
+		let baseName = nameWithoutExt;
+
+		if (underscoreIndex > 0) {
+			// Has a prefix, remove it
+			baseName = nameWithoutExt.substring(underscoreIndex + 1);
+		}
+
+		// Return new filename with cepoch prefix
+		return `${cepoch}_${baseName}${extension}`;
 	}
 
 	/**
@@ -615,16 +688,29 @@ class QuickMoveSettingTab extends PluginSettingTab {
 						id: `folder-${Date.now()}`, // Timestamp ensures uniqueness
 						folderPath: "",
 						displayName: "",
+						addCepochPrefix: false,
+						copyInsteadOfMove: false,
 					});
 					this.plugin.saveSettings(); // Save and refresh commands
 					this.display(); // Refresh the UI
 				});
 			});
 
+		// Add explanatory header for folder mappings
+		if (this.plugin.settings.folderMappings.length > 0) {
+			containerEl.createEl("h3", { text: "Folder Mappings" });
+			const descEl = containerEl.createEl("p", { 
+				text: "For each mapping: Folder Path | Display Name | Add Cepoch Prefix (toggle) | Copy Instead of Move (toggle) | Delete",
+			});
+			descEl.style.fontSize = "0.9em";
+			descEl.style.color = "var(--text-muted)";
+			descEl.style.marginBottom = "16px";
+		}
+
 		// Display all existing folder mappings
 		this.plugin.settings.folderMappings.forEach((mapping, index) => {
 			const settingEl = new Setting(containerEl)
-				.setName(`Folder Mapping ${index + 1}`)
+				.setName(`${index + 1}`)
 				.setClass("quick-move-folder-setting"); // CSS class for styling
 
 			// Input for folder path
@@ -647,6 +733,30 @@ class QuickMoveSettingTab extends PluginSettingTab {
 						await this.plugin.saveSettings();
 					});
 				text.inputEl.style.marginRight = "10px";
+			});
+
+			// Checkbox for cepoch prefix
+			settingEl.addToggle((toggle) => {
+				toggle
+					.setValue(mapping.addCepochPrefix)
+					.setTooltip("Add cepoch prefix when moving files")
+					.onChange(async (value) => {
+						mapping.addCepochPrefix = value;
+						await this.plugin.saveSettings();
+					});
+				toggle.toggleEl.style.marginRight = "10px";
+			});
+
+			// Checkbox for copy instead of move
+			settingEl.addToggle((toggle) => {
+				toggle
+					.setValue(mapping.copyInsteadOfMove)
+					.setTooltip("Copy file instead of moving")
+					.onChange(async (value) => {
+						mapping.copyInsteadOfMove = value;
+						await this.plugin.saveSettings();
+					});
+				toggle.toggleEl.style.marginRight = "10px";
 			});
 
 			// Delete button for removing this mapping
