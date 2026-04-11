@@ -1,94 +1,274 @@
-# Obsidian Sample Plugin
+# Filebase Hotkeys
 
-This is a sample plugin for Obsidian (https://obsidian.md).
+Create new items from a `base` block in a markdown note using a hotkey.
 
-This project uses TypeScript to provide type checking and documentation.
-The repo depends on the latest plugin API (obsidian.d.ts) in TypeScript Definition format, which contains TSDoc comments describing what it does.
+This plugin is designed for Obsidian desktop and focuses on one core workflow:
 
-This sample plugin demonstrates some of the basic functionality the plugin API can do.
-- Adds a ribbon icon, which shows a Notice when clicked.
-- Adds a command "Open Sample Modal" which opens a Modal.
-- Adds a plugin setting tab to the settings page.
-- Registers a global click event and output 'click' to the console.
-- Registers a global interval which logs 'setInterval' to the console.
+1. Put your cursor inside a fenced `base` block in a `.md` file.
+2. Run **Insert new item from base under cursor**.
+3. The plugin creates a new markdown file:
+   - in the folder defined by `file.folder == "..."` (if present),
+   - with filename format `<epoch_seconds>_some-task.md`,
+   - with YAML frontmatter keys inferred from the base block.
 
-## First time developing plugins?
+---
 
-Quick starting guide for new plugin devs:
+## What this plugin does
 
-- Check if [someone already developed a plugin for what you want](https://obsidian.md/plugins)! There might be an existing plugin similar enough that you can partner up with.
-- Make a copy of this repo as a template with the "Use this template" button (login to GitHub if you don't see it).
-- Clone your repo to a local development folder. For convenience, you can place this folder in your `.obsidian/plugins/your-plugin-name` folder.
-- Install NodeJS, then run `npm i` in the command line under your repo folder.
-- Run `npm run dev` to compile your plugin from `main.ts` to `main.js`.
-- Make changes to `main.ts` (or create new `.ts` files). Those changes should be automatically compiled into `main.js`.
-- Reload Obsidian to load the new version of your plugin.
-- Enable plugin in settings window.
-- For updates to the Obsidian API run `npm update` in the command line under your repo folder.
+- Adds one command:
+  - **Insert new item from base under cursor**
+- Reads only the base block under the current cursor.
+- Keeps focus in the current note (does not open the newly created file).
+- Creates missing destination folders automatically.
+- Prevents overwriting existing files.
 
-## Releasing new releases
+---
 
-- Update your `manifest.json` with your new version number, such as `1.0.1`, and the minimum Obsidian version required for your latest release.
-- Update your `versions.json` file with `"new-plugin-version": "minimum-obsidian-version"` so older versions of Obsidian can download an older version of your plugin that's compatible.
-- Create new GitHub release using your new version number as the "Tag version". Use the exact version number, don't include a prefix `v`. See here for an example: https://github.com/obsidianmd/obsidian-sample-plugin/releases
-- Upload the files `manifest.json`, `main.js`, `styles.css` as binary attachments. Note: The manifest.json file must be in two places, first the root path of your repository and also in the release.
-- Publish the release.
+## Supported base syntax (current behavior)
 
-> You can simplify the version bump process by running `npm version patch`, `npm version minor` or `npm version major` after updating `minAppVersion` manually in `manifest.json`.
-> The command will bump version in `manifest.json` and `package.json`, and add the entry for the new version to `versions.json`
+The parser is intentionally lightweight and practical. It currently supports:
 
-## Adding your plugin to the community plugin list
+- fenced code blocks:
+  - ```` ```base ... ``` ````
+- `filters:` section:
+  - equality expressions: `key == value`
+  - special handling for `file.folder == "path/to/folder"`
+- `order:` section:
+  - primary source for generated frontmatter keys
+- `properties:` section:
+  - additional source for generated frontmatter keys
 
-- Check the [plugin guidelines](https://docs.obsidian.md/Plugins/Releasing/Plugin+guidelines).
-- Publish an initial version.
-- Make sure you have a `README.md` file in the root of your repo.
-- Make a pull request at https://github.com/obsidianmd/obsidian-releases to add your plugin.
+### Example
 
-## How to use
-
-- Clone this repo.
-- Make sure your NodeJS is at least v16 (`node --version`).
-- `npm i` or `yarn` to install dependencies.
-- `npm run dev` to start compilation in watch mode.
-
-## Manually installing the plugin
-
-- Copy over `main.js`, `styles.css`, `manifest.json` to your vault `VaultFolder/.obsidian/plugins/your-plugin-id/`.
-
-## Improve code quality with eslint (optional)
-- [ESLint](https://eslint.org/) is a tool that analyzes your code to quickly find problems. You can run ESLint against your plugin to find common bugs and ways to improve your code. 
-- To use eslint with this project, make sure to install eslint from terminal:
-  - `npm install -g eslint`
-- To use eslint to analyze this project use this command:
-  - `eslint main.ts`
-  - eslint will then create a report with suggestions for code improvement by file and line number.
-- If your source code is in a folder, such as `src`, you can use eslint with this command to analyze all files in that folder:
-  - `eslint ./src/`
-
-## Funding URL
-
-You can include funding URLs where people who use your plugin can financially support it.
-
-The simple way is to set the `fundingUrl` field to your link in your `manifest.json` file:
-
-```json
-{
-    "fundingUrl": "https://buymeacoffee.com"
-}
+```base
+views:
+  - type: table
+    name: Table
+    filters:
+      and:
+        - file.folder == "6-tasks"
+        - status == "todo"
+    order:
+      - file.name
+      - status
+      - title
 ```
 
-If you have multiple URLs, you can also do:
+From this, the plugin will create something like:
 
-```json
-{
-    "fundingUrl": {
-        "Buy Me a Coffee": "https://buymeacoffee.com",
-        "GitHub Sponsor": "https://github.com/sponsors",
-        "Patreon": "https://www.patreon.com/"
-    }
-}
+- path: `6-tasks/1712345678_some-task.md`
+- content:
+
+```yaml
+---
+status: "todo"
+title: null
+---
 ```
 
-## API Documentation
+Notes:
+- `file.*` pseudo fields are not written into frontmatter.
+- If no usable keys are found, fallback frontmatter is:
+  - `title: null`
 
-See https://github.com/obsidianmd/obsidian-api
+---
+
+## Installation (manual dev install)
+
+1. Build the plugin:
+   - `npm install`
+   - `npm run build`
+2. Copy these files to your vault plugin folder:
+   - `main.js`
+   - `manifest.json`
+   - `styles.css` (if used)
+3. Location:
+   - `<Vault>/.obsidian/plugins/obsidian-filebase-hotkeys/`
+4. Reload Obsidian and enable plugin in:
+   - **Settings → Community plugins**
+
+---
+
+## Usage
+
+1. Open a markdown note containing a fenced `base` block.
+2. Place cursor inside that block.
+3. Run command:
+   - **Insert new item from base under cursor**
+4. Optionally assign a hotkey in:
+   - **Settings → Hotkeys**
+
+---
+
+## Project architecture
+
+The codebase is split into focused modules under `src/`:
+
+```text
+src/
+  plugin.ts                          # Plugin lifecycle only
+  constants.ts                       # Command IDs/names, notices, defaults
+  types.ts                           # Shared domain types
+
+  commands/
+    insert-from-base-command.ts      # Command orchestration
+
+  parsing/
+    base-block-parser.ts             # Parse base block under cursor
+
+  services/
+    frontmatter-builder.ts           # Build ordered frontmatter keys/values
+    new-item-planner.ts              # Build target path + file content plan
+    item-creator.ts                  # Vault writes + folder creation + conflict guard
+    new-item-creator.ts              # Thin creation wrapper
+
+  utils/
+    scalars.ts                       # Scalar parse/serialize helpers
+    strings.ts                       # String parsing helpers
+```
+
+### Flow of control
+
+1. `plugin.ts` registers command(s).
+2. `insert-from-base-command.ts` validates context and reads note content.
+3. `base-block-parser.ts` extracts `filters`, `order`, and `properties`.
+4. `new-item-planner.ts` computes:
+   - target folder/path
+   - filename
+   - frontmatter content (via `frontmatter-builder.ts`)
+5. `item-creator.ts` creates folder(s) + file in vault.
+
+---
+
+## Extension guide
+
+This section explains where to add features cleanly.
+
+### 1) Change filename strategy
+
+Current naming is `<epoch>_some-task.md`.
+
+- Edit: `src/services/new-item-planner.ts`
+- Functions:
+  - `buildFileName`
+  - `sanitizeSlug`
+
+Ideas:
+- Add date prefixes
+- Add random suffix on collision
+- Use title from filters/frontmatter
+
+---
+
+### 2) Add plugin settings (recommended next step)
+
+Examples:
+- default slug (replace `some-task`)
+- open created note toggle
+- fallback key when no properties found
+
+Suggested structure:
+- `src/settings.ts` for settings type/defaults/load-save
+- `src/ui/settings-tab.ts` for settings UI
+- keep `plugin.ts` minimal (load settings + register command)
+
+---
+
+### 3) Support more filter operators
+
+Current parser supports equality (`==`) only.
+
+- Edit: `src/parsing/base-block-parser.ts`
+- Expand filter parsing to handle:
+  - `!=`, `<`, `<=`, `>`, `>=`
+  - contains-like expressions
+- Decide mapping rules:
+  - which operators should prefill frontmatter
+  - which should only constrain query behavior (no frontmatter write)
+
+---
+
+### 4) Improve frontmatter defaults
+
+Current behavior:
+- explicit filter values win
+- missing keys become `null`
+
+- Edit: `src/services/frontmatter-builder.ts`
+- Possible enhancements:
+  - per-field default values
+  - infer `title` from slug
+  - skip null fields
+
+---
+
+### 5) Add tests
+
+Even simple unit tests will add confidence for parser and planner.
+
+Best candidates:
+- `src/parsing/base-block-parser.ts` (many edge cases)
+- `src/services/frontmatter-builder.ts`
+- `src/services/new-item-planner.ts`
+
+---
+
+## Development
+
+### Install dependencies
+
+```bash
+npm install
+```
+
+### Development watch build
+
+```bash
+npm run dev
+```
+
+### Production build
+
+```bash
+npm run build
+```
+
+---
+
+## Compatibility and scope
+
+- Desktop only (`isDesktopOnly: true`)
+- Markdown notes as base host files
+- No network calls
+- No telemetry
+
+---
+
+## Troubleshooting
+
+### “No base block found under cursor.”
+- Ensure cursor is inside a fenced ` ```base ` block.
+- Ensure the block is properly closed with ` ``` `.
+
+### File is created but not where expected
+- Check `file.folder == "..."` filter in the block.
+- Ensure folder string is valid and not accidentally quoted with extra characters.
+
+### Frontmatter keys are missing
+- Ensure keys exist in `order:` and/or `properties:`.
+- Ensure they are not `file.*` pseudo keys.
+
+---
+
+## Command reference
+
+- ID: `insert-new-item-from-base-under-cursor`
+- Name: `Insert new item from base under cursor`
+
+Keep this command ID stable to avoid breaking user hotkey mappings.
+
+---
+
+## License
+
+MIT
