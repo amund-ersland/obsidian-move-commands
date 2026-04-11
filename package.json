@@ -1,15 +1,20 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "obsidian-filebase-hotkeys",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Obsidian plugin that inserts new items from base blocks in markdown files using a hotkey",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"version": "node version-bump.mjs && git add manifest.json versions.json"
 	},
-	"keywords": [],
-	"author": "",
+	"keywords": [
+		"obsidian",
+		"plugin",
+		"bases",
+		"hotkeys"
+	],
+	"author": "Amund Ersland",
 	"license": "MIT",
 	"devDependencies": {
 		"@types/node": "^16.11.6",
