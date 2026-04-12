@@ -3,8 +3,26 @@ import { parseScalar } from "../utils/scalars";
 import { countLeadingSpaces, stripMatchingQuotes } from "../utils/strings";
 
 /**
+ * Internal representation of a base fenced block in a markdown note.
+ */
+interface BaseBlockRange {
+	startLine: number;
+	endLine: number;
+	innerLines: string[];
+}
+
+/**
+ * Parsed YAML-like content extracted from a base block.
+ */
+interface ParsedYamlLikeResult {
+	filterValues: BaseFilterValues;
+	properties: string[];
+	orderKeys: string[];
+}
+
+/**
  * Parses a markdown document and returns the ` ```base ` block that contains
- * the provided cursor line.
+ * the provided cursor/source line.
  *
  * Notes:
  * - `cursorLine` is expected to be 0-based (matching Obsidian editor API).
@@ -14,7 +32,67 @@ export function findBaseBlockUnderCursor(
 	noteContent: string,
 	cursorLine: number,
 ): ParsedBaseBlock | null {
+	const blocks = collectBaseBlockRanges(noteContent);
+
+	for (const block of blocks) {
+		const isCursorInside =
+			cursorLine >= block.startLine && cursorLine <= block.endLine;
+
+		if (!isCursorInside) continue;
+
+		const parsed = parseBaseYamlLike(block.innerLines);
+		return {
+			startLine: block.startLine,
+			endLine: block.endLine,
+			filterValues: parsed.filterValues,
+			properties: parsed.properties,
+			orderKeys: parsed.orderKeys,
+		};
+	}
+
+	return null;
+}
+
+/**
+ * Finds a base block by rendered block index (0-based), in document order.
+ *
+ * This is useful for button actions attached to rendered Bases views where we
+ * can identify "which rendered base block instance" was clicked, but may not
+ * have a stable source line mapping in the DOM.
+ *
+ * Example:
+ * - index 0 => first ` ```base ` block in note
+ * - index 1 => second ` ```base ` block in note
+ */
+export function findBaseBlockByRenderedIndex(
+	noteContent: string,
+	renderedBlockIndex: number,
+): ParsedBaseBlock | null {
+	if (!Number.isInteger(renderedBlockIndex) || renderedBlockIndex < 0) {
+		return null;
+	}
+
+	const blocks = collectBaseBlockRanges(noteContent);
+	const block = blocks[renderedBlockIndex];
+	if (!block) return null;
+
+	const parsed = parseBaseYamlLike(block.innerLines);
+	return {
+		startLine: block.startLine,
+		endLine: block.endLine,
+		filterValues: parsed.filterValues,
+		properties: parsed.properties,
+		orderKeys: parsed.orderKeys,
+	};
+}
+
+/**
+ * Collects all fenced ` ```base ` blocks from markdown text.
+ * Unclosed base blocks are ignored (matching existing "safe stop" behavior).
+ */
+function collectBaseBlockRanges(noteContent: string): BaseBlockRange[] {
 	const lines = noteContent.split(/\r?\n/);
+	const blocks: BaseBlockRange[] = [];
 
 	let i = 0;
 	while (i < lines.length) {
@@ -36,34 +114,20 @@ export function findBaseBlockUnderCursor(
 		}
 
 		if (endLine === -1) {
-			// Unclosed block: stop scanning.
+			// Unclosed block: stop scanning to avoid ambiguous parsing.
 			break;
 		}
 
-		const isCursorInside = cursorLine >= startLine && cursorLine <= endLine;
-		if (isCursorInside) {
-			const innerLines = lines.slice(startLine + 1, endLine);
-			const parsed = parseBaseYamlLike(innerLines);
-
-			return {
-				startLine,
-				endLine,
-				filterValues: parsed.filterValues,
-				properties: parsed.properties,
-				orderKeys: parsed.orderKeys,
-			};
-		}
+		blocks.push({
+			startLine,
+			endLine,
+			innerLines: lines.slice(startLine + 1, endLine),
+		});
 
 		i = endLine + 1;
 	}
 
-	return null;
-}
-
-interface ParsedYamlLikeResult {
-	filterValues: BaseFilterValues;
-	properties: string[];
-	orderKeys: string[];
+	return blocks;
 }
 
 /**
@@ -207,7 +271,10 @@ function normalizeOrderToken(value: string): string {
 	// Examples:
 	// - "+status" => "status"
 	// - "- title" => "title"
-	return value.replace(/^[+-]\s*/, "").replace(/^-+\s*/, "").trim();
+	return value
+		.replace(/^[+-]\s*/, "")
+		.replace(/^-+\s*/, "")
+		.trim();
 }
 
 function isUsableFrontmatterField(key: string): boolean {

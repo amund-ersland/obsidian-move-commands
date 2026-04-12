@@ -29,6 +29,8 @@ export const NOTICES = {
 	NO_ACTIVE_FILE: "No active file.",
 	ACTIVE_FILE_NOT_MARKDOWN: "Active file must be a markdown file.",
 	NO_BASE_BLOCK_UNDER_CURSOR: "No base block found under cursor.",
+	NO_BASE_BLOCK_UNDER_PREVIEW_HOVER:
+		"No base block found under mouse hover in preview mode.",
 	CREATE_FAILED_PREFIX: "Could not create new item:",
 	CREATED_PREFIX: "Created:",
 } as const;

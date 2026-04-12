@@ -1,8 +1,56 @@
-/*
+.filebase-hotkeys-bases-add-item-action {
+	margin-inline-start: 0.35rem;
+	display: inline-flex;
+	align-items: center;
+	gap: 0.35rem;
 
-This CSS file will be included with your plugin, and
-available in the app when your plugin is enabled.
+	padding: 0.25rem 0.55rem;
+	min-height: 26px;
+	border-radius: 6px;
 
-If your plugin does not need CSS, delete this file.
+	border: 1px solid var(--background-modifier-border);
+	background: var(--interactive-normal);
+	color: var(--text-normal);
 
-*/
+	cursor: pointer;
+	user-select: none;
+	-webkit-user-select: none;
+
+	transition:
+		background-color 120ms ease,
+		border-color 120ms ease,
+		color 120ms ease,
+		box-shadow 120ms ease,
+		transform 80ms ease;
+}
+
+.filebase-hotkeys-bases-add-item-action:hover {
+	background: var(--interactive-hover);
+	border-color: var(--interactive-accent);
+	color: var(--text-normal);
+}
+
+.filebase-hotkeys-bases-add-item-action:focus-visible {
+	outline: none;
+	box-shadow:
+		0 0 0 2px var(--background-primary),
+		0 0 0 4px var(--interactive-accent);
+}
+
+.filebase-hotkeys-bases-add-item-action:active {
+	transform: translateY(1px);
+}
+
+.filebase-hotkeys-bases-add-item-action .text-button-icon {
+	font-size: 0.95em;
+	line-height: 1;
+}
+
+.filebase-hotkeys-bases-add-item-action .text-button-label {
+	line-height: 1.1;
+	white-space: nowrap;
+}
+
+.theme-dark .filebase-hotkeys-bases-add-item-action {
+	background: color-mix(in srgb, var(--interactive-normal) 82%, #000 18%);
+}
