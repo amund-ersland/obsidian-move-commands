@@ -1,56 +1,45 @@
-.filebase-hotkeys-bases-add-item-action {
-	margin-inline-start: 0.35rem;
-	display: inline-flex;
-	align-items: center;
-	gap: 0.35rem;
+/* Settings tab: one collapsible section per folder mapping. */
 
-	padding: 0.25rem 0.55rem;
-	min-height: 26px;
-	border-radius: 6px;
-
+.move-commands-settings .move-commands-mapping {
+	margin: 0.75rem 0;
+	padding: 0.25rem 0.75rem;
 	border: 1px solid var(--background-modifier-border);
-	background: var(--interactive-normal);
-	color: var(--text-normal);
+	border-radius: 8px;
+	background: var(--background-secondary);
+}
 
+.move-commands-settings .move-commands-mapping-summary {
+	display: flex;
+	align-items: baseline;
+	gap: 0.5rem;
+	padding: 0.5rem 0;
 	cursor: pointer;
 	user-select: none;
 	-webkit-user-select: none;
-
-	transition:
-		background-color 120ms ease,
-		border-color 120ms ease,
-		color 120ms ease,
-		box-shadow 120ms ease,
-		transform 80ms ease;
 }
 
-.filebase-hotkeys-bases-add-item-action:hover {
-	background: var(--interactive-hover);
-	border-color: var(--interactive-accent);
+.move-commands-settings .move-commands-mapping-title {
+	font-weight: var(--font-semibold);
 	color: var(--text-normal);
 }
 
-.filebase-hotkeys-bases-add-item-action:focus-visible {
-	outline: none;
-	box-shadow:
-		0 0 0 2px var(--background-primary),
-		0 0 0 4px var(--interactive-accent);
+.move-commands-settings .move-commands-mapping-path,
+.move-commands-settings .move-commands-preview {
+	color: var(--text-muted);
+	font-size: var(--font-ui-smaller);
+	font-family: var(--font-monospace);
 }
 
-.filebase-hotkeys-bases-add-item-action:active {
-	transform: translateY(1px);
+.move-commands-settings .move-commands-preview {
+	margin: 0 0 0.5rem;
 }
 
-.filebase-hotkeys-bases-add-item-action .text-button-icon {
-	font-size: 0.95em;
-	line-height: 1;
+.move-commands-settings .move-commands-empty {
+	color: var(--text-muted);
 }
 
-.filebase-hotkeys-bases-add-item-action .text-button-label {
-	line-height: 1.1;
-	white-space: nowrap;
-}
+/* Prompt modal: let the single input use the full dialog width. */
 
-.theme-dark .filebase-hotkeys-bases-add-item-action {
-	background: color-mix(in srgb, var(--interactive-normal) 82%, #000 18%);
+.move-commands-text-input {
+	width: 100%;
 }

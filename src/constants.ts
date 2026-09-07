@@ -1,36 +1,41 @@
 /**
- * Centralized constants for the Filebase Hotkeys plugin.
- * Keeping these values in one place makes command registration
- * and future configuration changes safer and easier.
+ * Stable identifiers and shared literals.
+ *
+ * Command IDs are effectively public API: Obsidian stores hotkey bindings as
+ * `<manifest id>:<command id>`, so renaming one silently drops the user's
+ * hotkey. Command *names* are display-only and safe to change.
  */
 
-/** Plugin command identifiers (stable IDs for hotkey bindings). */
+/** Prefix for the generated per-folder-mapping commands. */
+export const FOLDER_COMMAND_ID_PREFIX = "move-to-";
+
+/** IDs of the commands that exist regardless of configuration. */
 export const COMMAND_IDS = {
-	INSERT_NEW_ITEM_FROM_BASE_UNDER_CURSOR:
-		"insert-new-item-from-base-under-cursor",
+	SHOW_MOVE_MENU: "show-move-menu",
+	SHOW_DUPLICATE_MENU: "show-duplicate-menu",
+	MOVE_TO_ROOT: "move-to-root",
+	MOVE_TO_PARENT: "move-to-parent",
+	MOVE_TO_NEW_FOLDER: "move-to-new-folder",
 } as const;
 
-/** User-facing command names shown in Obsidian's command palette. */
+/** Names shown for those commands in the command palette. */
 export const COMMAND_NAMES = {
-	INSERT_NEW_ITEM_FROM_BASE_UNDER_CURSOR:
-		"Insert new item from base under cursor",
+	SHOW_MOVE_MENU: "Show quick move menu",
+	SHOW_DUPLICATE_MENU: "Show duplicate to folder menu",
+	MOVE_TO_ROOT: "Move current file to vault root",
+	MOVE_TO_PARENT: "Move current file to parent folder",
+	MOVE_TO_NEW_FOLDER: "Create new folder and move file there",
 } as const;
 
-/** Defaults used when generating a new note from a base block. */
-export const FILE_DEFAULTS = {
-	/** Suffix used after epoch prefix: `<epoch>_<slug>.md` */
-	DEFAULT_SLUG: "some-task",
-	/** Markdown extension for created files. */
-	EXTENSION: ".md",
-} as const;
+/** How the vault root is presented wherever a destination is named. */
+export const VAULT_ROOT_LABEL = "Vault root";
 
-/** Notice messages used by command flow. */
+/** Separator between a generated filename prefix and the base name. */
+export const PREFIX_SEPARATOR = "_";
+
+/** Notices that carry no interpolated values. */
 export const NOTICES = {
 	NO_ACTIVE_FILE: "No active file.",
-	ACTIVE_FILE_NOT_MARKDOWN: "Active file must be a markdown file.",
-	NO_BASE_BLOCK_UNDER_CURSOR: "No base block found under cursor.",
-	NO_BASE_BLOCK_UNDER_PREVIEW_HOVER:
-		"No base block found under mouse hover in preview mode.",
-	CREATE_FAILED_PREFIX: "Could not create new item:",
-	CREATED_PREFIX: "Created:",
+	NO_FOLDER_MAPPINGS:
+		"No folder mappings configured. Add one in Settings → Move Commands.",
 } as const;

@@ -1,90 +1,56 @@
 /**
- * Shared domain types for the Filebase Hotkeys plugin.
- * These types keep parsing, command handling, and file creation code consistent.
- */
-
-/**
- * Primitive value types allowed in generated frontmatter.
- */
-export type FrontmatterValue = string | number | boolean | null;
-
-/**
- * Values inferred from the `filters` section of a base block.
+ * Shared domain types for the Move Commands plugin.
  *
- * Example:
- * - file.folder == "6-tasks"  -> folder = "6-tasks"
- * - status == "todo"          -> literalProperties.status = "todo"
+ * These describe *what* an operation should do; the vault work itself lives in
+ * `src/services/`, and user-facing wiring lives in `src/commands/`.
  */
-export interface BaseFilterValues {
-	/**
-	 * Destination folder for the new note, inferred from `file.folder == "..."`
-	 * Empty/undefined means vault root.
-	 */
-	folder?: string;
 
-	/**
-	 * Non-file.* filter values that should be written as frontmatter defaults.
-	 */
-	literalProperties: Record<string, FrontmatterValue>;
-}
+/** Whether the active file is relocated or left in place and duplicated. */
+export type FileOperation = "move" | "copy";
 
 /**
- * Parsed representation of the ` ```base ` block that is currently under cursor.
+ * Filename transformations applied to a file as it lands in a folder.
+ *
+ * Every flag is opt-in per folder mapping, so the default behavior is to keep
+ * the filename exactly as it is.
  */
-export interface ParsedBaseBlock {
-	/**
-	 * Zero-based start line index of the fenced block opening line.
-	 */
-	startLine: number;
+export interface FilenameOptions {
+	/** Prefix the name with a local `YYYYMMDDHHmm` timestamp. */
+	addTimestampPrefix: boolean;
 
 	/**
-	 * Zero-based end line index of the fenced block closing line.
+	 * Prefix the name with a "cepoch": epoch seconds in base36, reversed.
+	 * Ignored when {@link addTimestampPrefix} is enabled.
 	 */
-	endLine: number;
+	addCepochPrefix: boolean;
 
-	/**
-	 * Filter values extracted from `filters`.
-	 */
-	filterValues: BaseFilterValues;
-
-	/**
-	 * Keys extracted from an optional `properties:` section.
-	 */
-	properties: string[];
-
-	/**
-	 * Keys extracted from `order:` section.
-	 * In this plugin, this is the primary source for generated frontmatter keys.
-	 */
-	orderKeys: string[];
+	/** Lowercase the name and reduce it to `a-z0-9-` characters. */
+	standardizeFilename: boolean;
 }
 
-/**
- * Data needed to create a new markdown item from a parsed base block.
- */
-export interface NewItemPlan {
-	/**
-	 * Full vault-relative file path to create, e.g. "6-tasks/1712345678_some-task.md"
-	 */
-	targetPath: string;
+/** A filename split into its generated prefix, base name, and extension. */
+export interface ParsedFilename {
+	/** Generated prefix without its separator, or `null` when there is none. */
+	prefix: string | null;
 
-	/**
-	 * Markdown content to write into the file.
-	 */
-	content: string;
+	/** The meaningful part of the name, without prefix or extension. */
+	base: string;
+
+	/** Extension including the leading dot, or `""` when the name has none. */
+	extension: string;
 }
 
-/**
- * Result from building final frontmatter keys in deterministic order.
- */
-export interface FrontmatterBuildResult {
-	/**
-	 * Ordered keys that will be rendered in YAML.
-	 */
-	orderedKeys: string[];
+/** One destination as offered in a folder picker or bound to a command. */
+export interface FolderChoice {
+	/** Human-readable destination name, shown in menus and notices. */
+	label: string;
 
-	/**
-	 * Final values by key (null when no explicit value is available).
-	 */
-	values: Record<string, FrontmatterValue>;
+	/** Vault-relative folder path; `""` means the vault root. */
+	folderPath: string;
+
+	/** What to do with the active file when this destination is chosen. */
+	operation: FileOperation;
+
+	/** Filename transformations to apply on arrival. */
+	filenameOptions: FilenameOptions;
 }

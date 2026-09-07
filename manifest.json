@@ -1,10 +1,10 @@
 {
-	"id": "obsidian-filebase-hotkeys",
-	"name": "Filebase Hotkeys",
-	"version": "1.0.0",
-	"minAppVersion": "0.12.0",
-	"description": "Insert new items from base blocks in markdown files using a hotkey.",
+	"id": "quick-move",
+	"name": "Move Commands",
+	"version": "2.0.0",
+	"minAppVersion": "1.5.3",
+	"description": "Move or copy the active file into preconfigured folders with hotkeys, optionally standardizing the filename and adding a timestamp prefix.",
 	"author": "Amund Ersland",
 	"authorUrl": "https://github.com/amund-ersland",
-	"isDesktopOnly": true
+	"isDesktopOnly": false
 }

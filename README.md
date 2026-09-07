@@ -1,274 +1,101 @@
-# Filebase Hotkeys
+# Move Commands
 
-Create new items from a `base` block in a markdown note using a hotkey.
+Move or copy the active file into preconfigured folders with hotkeys.
 
-This plugin is designed for Obsidian desktop and focuses on one core workflow:
-
-1. Put your cursor inside a fenced `base` block in a `.md` file.
-2. Run **Insert new item from base under cursor**.
-3. The plugin creates a new markdown file:
-   - in the folder defined by `file.folder == "..."` (if present),
-   - with filename format `<epoch_seconds>_some-task.md`,
-   - with YAML frontmatter keys inferred from the base block.
+Each folder you configure becomes its own command, so you can bind
+<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> to "move to Zettels" and file a note
+without touching the file explorer.
 
 ---
 
-## What this plugin does
+## Commands
 
-- Adds one command:
-  - **Insert new item from base under cursor**
-- Reads only the base block under the current cursor.
-- Keeps focus in the current note (does not open the newly created file).
-- Creates missing destination folders automatically.
-- Prevents overwriting existing files.
+| Command | What it does |
+| --- | --- |
+| `Move current file to <name>` | One per configured folder mapping. Moves — or copies, if the mapping says so — the active file there. |
+| `Show quick move menu` | Fuzzy picker over every configured folder plus the vault root. Each destination keeps its own move/copy and filename settings. |
+| `Show duplicate to folder menu` | Same picker, but always copies and opens the copy in a new tab. |
+| `Move current file to vault root` | Moves the active file to the top level of the vault. |
+| `Move current file to parent folder` | Moves the active file one folder level up. |
+| `Create new folder and move file there` | Prompts for a folder path, creates it, and moves the active file into it. |
 
----
+Bind any of them under **Settings → Hotkeys** (search for "Move Commands").
 
-## Supported base syntax (current behavior)
+## Settings
 
-The parser is intentionally lightweight and practical. It currently supports:
+**Settings → Move Commands** holds a list of folder mappings. Per mapping:
 
-- fenced code blocks:
-  - ```` ```base ... ``` ````
-- `filters:` section:
-  - equality expressions: `key == value`
-  - special handling for `file.folder == "path/to/folder"`
-- `order:` section:
-  - primary source for generated frontmatter keys
-- `properties:` section:
-  - additional source for generated frontmatter keys
+| Setting | Effect |
+| --- | --- |
+| Folder path | Vault-relative destination. Missing folders — including nested ones — are created on first use. |
+| Display name | Shown in the command palette and the folder pickers. |
+| Copy instead of move | Leaves the original in place and duplicates it. |
+| Standardize filename | Lowercases the name and reduces it to `a-z`, `0-9`, and dashes. `Møte med Øystein.md` becomes `mote-med-oystein.md`. |
+| Add timestamp prefix | Prefixes with the local date and time: `202601281043_my-note.md`. |
+| Add cepoch prefix | Prefixes with epoch seconds in base36, reversed: `ozik9t_my-note.md`. Short, and distinct between notes created moments apart. |
 
-### Example
+Each section shows a live example of what the current options produce.
 
-```base
-views:
-  - type: table
-    name: Table
-    filters:
-      and:
-        - file.folder == "6-tasks"
-        - status == "todo"
-    order:
-      - file.name
-      - status
-      - title
-```
+### Filename prefixes
 
-From this, the plugin will create something like:
+- Timestamp wins when both prefix options are enabled.
+- An existing generated prefix is replaced rather than stacked. A prefix is
+  recognized as generated when it is a short, lowercase alphanumeric token
+  containing at least one digit — so `kqm3fp1_task.md` is re-prefixed, while
+  `meeting_notes.md` keeps its "meeting".
+- With no prefix option enabled, the filename's prefix is left alone.
 
-- path: `6-tasks/1712345678_some-task.md`
-- content:
+## Behavior worth knowing
 
-```yaml
----
-status: "todo"
-title: null
----
-```
-
-Notes:
-- `file.*` pseudo fields are not written into frontmatter.
-- If no usable keys are found, fallback frontmatter is:
-  - `title: null`
-
----
-
-## Installation (manual dev install)
-
-1. Build the plugin:
-   - `npm install`
-   - `npm run build`
-2. Copy these files to your vault plugin folder:
-   - `main.js`
-   - `manifest.json`
-   - `styles.css` (if used)
-3. Location:
-   - `<Vault>/.obsidian/plugins/obsidian-filebase-hotkeys/`
-4. Reload Obsidian and enable plugin in:
-   - **Settings → Community plugins**
-
----
-
-## Usage
-
-1. Open a markdown note containing a fenced `base` block.
-2. Place cursor inside that block.
-3. Run command:
-   - **Insert new item from base under cursor**
-4. Optionally assign a hotkey in:
-   - **Settings → Hotkeys**
-
----
-
-## Project architecture
-
-The codebase is split into focused modules under `src/`:
-
-```text
-src/
-  plugin.ts                          # Plugin lifecycle only
-  constants.ts                       # Command IDs/names, notices, defaults
-  types.ts                           # Shared domain types
-
-  commands/
-    insert-from-base-command.ts      # Command orchestration
-
-  parsing/
-    base-block-parser.ts             # Parse base block under cursor
-
-  services/
-    frontmatter-builder.ts           # Build ordered frontmatter keys/values
-    new-item-planner.ts              # Build target path + file content plan
-    item-creator.ts                  # Vault writes + folder creation + conflict guard
-    new-item-creator.ts              # Thin creation wrapper
-
-  utils/
-    scalars.ts                       # Scalar parse/serialize helpers
-    strings.ts                       # String parsing helpers
-```
-
-### Flow of control
-
-1. `plugin.ts` registers command(s).
-2. `insert-from-base-command.ts` validates context and reads note content.
-3. `base-block-parser.ts` extracts `filters`, `order`, and `properties`.
-4. `new-item-planner.ts` computes:
-   - target folder/path
-   - filename
-   - frontmatter content (via `frontmatter-builder.ts`)
-5. `item-creator.ts` creates folder(s) + file in vault.
-
----
-
-## Extension guide
-
-This section explains where to add features cleanly.
-
-### 1) Change filename strategy
-
-Current naming is `<epoch>_some-task.md`.
-
-- Edit: `src/services/new-item-planner.ts`
-- Functions:
-  - `buildFileName`
-  - `sanitizeSlug`
-
-Ideas:
-- Add date prefixes
-- Add random suffix on collision
-- Use title from filters/frontmatter
-
----
-
-### 2) Add plugin settings (recommended next step)
-
-Examples:
-- default slug (replace `some-task`)
-- open created note toggle
-- fallback key when no properties found
-
-Suggested structure:
-- `src/settings.ts` for settings type/defaults/load-save
-- `src/ui/settings-tab.ts` for settings UI
-- keep `plugin.ts` minimal (load settings + register command)
-
----
-
-### 3) Support more filter operators
-
-Current parser supports equality (`==`) only.
-
-- Edit: `src/parsing/base-block-parser.ts`
-- Expand filter parsing to handle:
-  - `!=`, `<`, `<=`, `>`, `>=`
-  - contains-like expressions
-- Decide mapping rules:
-  - which operators should prefill frontmatter
-  - which should only constrain query behavior (no frontmatter write)
-
----
-
-### 4) Improve frontmatter defaults
-
-Current behavior:
-- explicit filter values win
-- missing keys become `null`
-
-- Edit: `src/services/frontmatter-builder.ts`
-- Possible enhancements:
-  - per-field default values
-  - infer `title` from slug
-  - skip null fields
-
----
-
-### 5) Add tests
-
-Even simple unit tests will add confidence for parser and planner.
-
-Best candidates:
-- `src/parsing/base-block-parser.ts` (many edge cases)
-- `src/services/frontmatter-builder.ts`
-- `src/services/new-item-planner.ts`
-
----
+- Moves never overwrite: if a file already occupies the destination path, the
+  move is refused with a notice.
+- Copies never overwrite either — they get a counter instead (`note-1.md`).
+- Moves go through Obsidian's file manager, so links to the note are updated.
+- Deleting a mapping removes its command; any hotkey bound to it stops working.
 
 ## Development
 
-### Install dependencies
-
 ```bash
 npm install
+npm run dev     # watch build
+npm run build   # type-check, then production bundle
 ```
 
-### Development watch build
+The entry point is `src/main.ts` and the bundle is written to `main.js` at the
+plugin root, next to `manifest.json` and `styles.css`.
 
-```bash
-npm run dev
+```
+src/
+  main.ts                        # lifecycle, settings persistence, registration
+  constants.ts                   # stable command IDs and shared literals
+  types.ts                       # shared domain types
+  commands/
+    file-operation-runner.ts     # destination choice -> vault change + notice
+    folder-commands.ts           # one command per folder mapping
+    utility-commands.ts          # menus, parent folder, root, new folder
+  services/
+    file-operations.ts           # the move and copy vault mutations
+    filename.ts                  # prefixes and slugs (pure string work)
+    folder-choices.ts            # mappings -> destination choices
+    vault-paths.ts               # path normalization, folder creation
+  settings/
+    defaults.ts                  # defaults and validation of persisted data
+    settings-tab.ts              # settings UI
+    types.ts                     # persisted settings shape
+  ui/
+    folder-suggest-modal.ts      # fuzzy destination picker
+    text-input-modal.ts          # single-field prompt
+  utils/
+    errors.ts
 ```
 
-### Production build
+### Plugin ID
 
-```bash
-npm run build
-```
-
----
-
-## Compatibility and scope
-
-- Desktop only (`isDesktopOnly: true`)
-- Markdown notes as base host files
-- No network calls
-- No telemetry
-
----
-
-## Troubleshooting
-
-### “No base block found under cursor.”
-- Ensure cursor is inside a fenced ` ```base ` block.
-- Ensure the block is properly closed with ` ``` `.
-
-### File is created but not where expected
-- Check `file.folder == "..."` filter in the block.
-- Ensure folder string is valid and not accidentally quoted with extra characters.
-
-### Frontmatter keys are missing
-- Ensure keys exist in `order:` and/or `properties:`.
-- Ensure they are not `file.*` pseudo keys.
-
----
-
-## Command reference
-
-- ID: `insert-new-item-from-base-under-cursor`
-- Name: `Insert new item from base under cursor`
-
-Keep this command ID stable to avoid breaking user hotkey mappings.
-
----
+The manifest ID is `quick-move`, which predates the `obsidian-move-commands`
+folder name. Obsidian keys hotkey bindings as `<plugin id>:<command id>`, so
+the ID stays as it is — renaming it would silently drop every bound hotkey.
+The same goes for mapping IDs, which are baked into `move-to-<mapping id>`.
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).

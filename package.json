@@ -1,7 +1,7 @@
 {
-	"name": "obsidian-filebase-hotkeys",
-	"version": "1.0.0",
-	"description": "Obsidian plugin that inserts new items from base blocks in markdown files using a hotkey",
+	"name": "obsidian-move-commands",
+	"version": "2.0.0",
+	"description": "Obsidian plugin that moves or copies the active file into preconfigured folders with hotkeys",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
@@ -11,7 +11,8 @@
 	"keywords": [
 		"obsidian",
 		"plugin",
-		"bases",
+		"move",
+		"files",
 		"hotkeys"
 	],
 	"author": "Amund Ersland",
