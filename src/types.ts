@@ -24,7 +24,12 @@ export interface FilenameOptions {
 	 */
 	addCepochPrefix: boolean;
 
-	/** Lowercase the name and reduce it to `a-z0-9-` characters. */
+	/**
+	 * Bring the name to the `<cepoch>_base` standard: keep an existing
+	 * `prefix_base` shape as-is, generate a cepoch prefix when there is none,
+	 * and turn spaces in the base into hyphens. Nothing else about the name
+	 * is changed.
+	 */
 	standardizeFilename: boolean;
 }
 

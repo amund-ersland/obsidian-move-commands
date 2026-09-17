@@ -140,7 +140,9 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 		new Setting(section)
 			.setName("Standardize filename")
 			.setDesc(
-				"Lowercase the name and reduce it to letters, numbers, and dashes.",
+				"Bring the name to <cepoch>_file-name: keeps an existing prefix, " +
+					"adds a cepoch prefix if there isn't one, and turns spaces into " +
+					"dashes. Everything else about the name stays as it is.",
 			)
 			.addToggle((toggle) =>
 				toggle
@@ -168,7 +170,9 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 		new Setting(section)
 			.setName("Add cepoch prefix")
 			.setDesc(
-				"Prefix with epoch seconds in base36, reversed — short, and distinct for notes created close together.",
+				"Prefix with epoch seconds in base36, reversed — short, and distinct " +
+					"for notes created close together. Forces a fresh prefix even over " +
+					"one \"Standardize filename\" would otherwise keep.",
 			)
 			.addToggle((toggle) =>
 				toggle

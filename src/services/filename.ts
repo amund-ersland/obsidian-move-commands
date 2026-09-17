@@ -25,20 +25,6 @@ export const NO_FILENAME_CHANGES: FilenameOptions = {
  */
 const GENERATED_PREFIX_PATTERN = /^(?=.*\d)[0-9a-z]{4,16}$/;
 
-/** Characters with a conventional ASCII spelling, folded before stripping marks. */
-const TRANSLITERATIONS: Record<string, string> = {
-	æ: "ae",
-	ø: "o",
-	å: "a",
-	ä: "a",
-	ö: "o",
-	ü: "u",
-	ß: "ss",
-	ð: "d",
-	þ: "th",
-	đ: "d",
-};
-
 /** Splits a filename into its stem and its extension (including the dot). */
 export function splitExtension(filename: string): {
 	stem: string;
@@ -106,44 +92,54 @@ export function cepochPrefix(now: Date = new Date()): string {
 }
 
 /**
- * Reduces a base name to lowercase `a-z0-9-`.
+ * Trims a base name and collapses internal whitespace to single hyphens.
  *
- * Returns `""` when nothing survives, which callers treat as "keep the
- * original name" rather than producing a nameless file.
+ * Everything else — case, existing hyphens/underscores, accented characters —
+ * is left exactly as it was; the standard only cares about spaces.
  */
-export function slugify(value: string): string {
-	const folded = Array.from(value.toLowerCase())
-		.map((character) => TRANSLITERATIONS[character] ?? character)
-		.join("");
-
-	return folded
-		.normalize("NFD")
-		.replace(/[\u0300-\u036f]/g, "")
-		.replace(/[^a-z0-9]+/g, "-")
-		.replace(/^-+|-+$/g, "");
+export function normalizeBaseSpacing(value: string): string {
+	return value.trim().replace(/\s+/g, "-");
 }
 
 /**
  * Applies a mapping's filename options.
  *
- * A newly generated prefix replaces an existing generated one; when no prefix
- * is requested, whatever the name already had is preserved. Timestamp wins
- * over cepoch when both are enabled.
+ * With `standardizeFilename` on, the name is brought to the `<cepoch>_base`
+ * standard: an existing `prefix_base` shape (anything before the first `_`)
+ * is kept as-is, a name with no `_` at all gets a freshly generated cepoch
+ * prefix, and the base has its spaces (only) turned into hyphens. An explicit
+ * timestamp or cepoch prefix always wins over one already in the name;
+ * timestamp wins over cepoch when both are requested.
+ *
+ * With `standardizeFilename` off, the name is left untouched apart from a
+ * requested prefix, using the stricter "looks machine-generated" prefix
+ * detection so ordinary underscored names (`meeting_notes`) aren't mistaken
+ * for already having one.
  */
 export function applyFilenameOptions(
 	filename: string,
 	options: FilenameOptions,
 	now: Date = new Date(),
 ): string {
-	const parts = parseFilename(filename);
-	const base = options.standardizeFilename
-		? slugify(parts.base) || parts.base
-		: parts.base;
+	if (!options.standardizeFilename) {
+		const parts = parseFilename(filename);
+		return formatFilename({
+			prefix: generatePrefix(options, now) ?? parts.prefix,
+			base: parts.base,
+			extension: parts.extension,
+		});
+	}
+
+	const { stem, extension } = splitExtension(filename);
+	const separator = stem.indexOf(PREFIX_SEPARATOR);
+	const hasExistingPrefix = separator > 0;
+	const existingPrefix = hasExistingPrefix ? stem.slice(0, separator) : null;
+	const rawBase = hasExistingPrefix ? stem.slice(separator + 1) : stem;
 
 	return formatFilename({
-		prefix: generatePrefix(options, now) ?? parts.prefix,
-		base,
-		extension: parts.extension,
+		prefix: generatePrefix(options, now) ?? existingPrefix ?? cepochPrefix(now),
+		base: normalizeBaseSpacing(rawBase),
+		extension,
 	});
 }
 
