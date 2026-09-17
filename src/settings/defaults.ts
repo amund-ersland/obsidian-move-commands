@@ -24,7 +24,7 @@ export function createFolderMapping(): FolderMapping {
 		addTimestampPrefix: false,
 		addCepochPrefix: false,
 		copyInsteadOfMove: false,
-		standardizeFilename: false,
+		standardizeFilename: true,
 	};
 }
 
