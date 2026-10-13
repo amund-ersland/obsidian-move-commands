@@ -38,7 +38,9 @@ export function parentFolderPath(path: string): string {
 /**
  * Creates `folderPath` (and any missing parents) unless it already exists.
  *
- * A concurrent create is tolerated: only a still-missing folder is an error.
+ * Parents are created one level at a time, so a new `YYYY/MM` partition gets
+ * both levels registered in the vault. A concurrent create is tolerated: only
+ * a still-missing folder is an error.
  */
 export async function ensureFolderExists(
 	app: App,
@@ -49,6 +51,8 @@ export async function ensureFolderExists(
 	if (!folder) {
 		return;
 	}
+
+	await ensureFolderExists(app, parentFolderPath(folder));
 
 	const existing = app.vault.getAbstractFileByPath(folder);
 

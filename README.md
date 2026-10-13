@@ -30,6 +30,7 @@ Bind any of them under **Settings → Hotkeys** (search for "Move Commands").
 | Folder path | Vault-relative destination. Missing folders — including nested ones — are created on first use. |
 | Display name | Shown in the command palette and the folder pickers. |
 | Copy instead of move | Leaves the original in place and duplicates it. |
+| Partition by date | Places the file in a `YYYY/MM` subfolder, dated by its cepoch, timestamp or epoch prefix (today when the name has none): `3-content/1-zettels/2026/10/ozik9t_my-note.md`. Missing folders are created. |
 | Standardize filename | Lowercases the name and reduces it to `a-z`, `0-9`, and dashes. `Møte med Øystein.md` becomes `mote-med-oystein.md`. |
 | Add timestamp prefix | Prefixes with the local date and time: `202601281043_my-note.md`. |
 | Add cepoch prefix | Prefixes with epoch seconds in base36, reversed: `ozik9t_my-note.md`. Short, and distinct between notes created moments apart. |

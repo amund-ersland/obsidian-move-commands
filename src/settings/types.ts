@@ -18,6 +18,9 @@ export interface FolderMapping extends FilenameOptions {
 
 	/** Duplicate the file into the folder instead of moving it there. */
 	copyInsteadOfMove: boolean;
+
+	/** Place the file in a `YYYY/MM` subfolder dated by its filename prefix. */
+	partitionByDate: boolean;
 }
 
 /** Everything persisted through `loadData()` / `saveData()`. */

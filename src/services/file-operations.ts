@@ -1,5 +1,6 @@
 import type { App, TFile } from "obsidian";
 import { applyFilenameOptions } from "./filename";
+import { datePartition } from "./partition";
 import {
 	ensureFolderExists,
 	findAvailablePath,
@@ -30,6 +31,21 @@ export interface FileOperationResult {
 }
 
 /**
+ * The folder a file named `filename` lands in: `folderPath` itself, or its
+ * `YYYY/MM` subfolder when `partitionByDate` is set.
+ */
+function destinationFolder(
+	folderPath: string,
+	filename: string,
+	partitionByDate: boolean,
+): string {
+	const folder = normalizeFolderPath(folderPath);
+	return partitionByDate
+		? joinVaultPath(folder, datePartition(filename))
+		: folder;
+}
+
+/**
  * Moves `file` into `folderPath`, applying `options` to its name.
  *
  * Refuses to overwrite: an occupied destination is an error, not a silent
@@ -40,12 +56,11 @@ export async function moveFileToFolder(
 	file: TFile,
 	folderPath: string,
 	options: FilenameOptions,
+	partitionByDate = false,
 ): Promise<FileOperationResult> {
-	const folder = normalizeFolderPath(folderPath);
-	const targetPath = joinVaultPath(
-		folder,
-		applyFilenameOptions(file.name, options),
-	);
+	const filename = applyFilenameOptions(file.name, options);
+	const folder = destinationFolder(folderPath, filename, partitionByDate);
+	const targetPath = joinVaultPath(folder, filename);
 
 	if (targetPath === file.path) {
 		return { operation: "move", file, path: file.path, unchanged: true };
@@ -72,15 +87,17 @@ export async function copyFileToFolder(
 	file: TFile,
 	folderPath: string,
 	options: FilenameOptions,
+	partitionByDate = false,
 ): Promise<FileOperationResult> {
-	const folder = normalizeFolderPath(folderPath);
+	const filename = applyFilenameOptions(file.name, options);
+	const folder = destinationFolder(folderPath, filename, partitionByDate);
 
 	await ensureFolderExists(app, folder);
 
 	const targetPath = findAvailablePath(
 		app,
 		folder,
-		applyFilenameOptions(file.name, options),
+		filename,
 		options.standardizeFilename ? "-" : " ",
 	);
 

@@ -58,4 +58,10 @@ export interface FolderChoice {
 
 	/** Filename transformations to apply on arrival. */
 	filenameOptions: FilenameOptions;
+
+	/**
+	 * Land the file in a `YYYY/MM` subfolder of {@link folderPath}, dated by
+	 * its filename prefix (see `src/services/partition.ts`).
+	 */
+	partitionByDate: boolean;
 }
