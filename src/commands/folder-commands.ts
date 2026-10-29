@@ -40,7 +40,10 @@ export class FolderCommandRegistry {
 			}
 
 			const commandId = `${FOLDER_COMMAND_ID_PREFIX}${mapping.id}`;
-			const choice = mappingToChoice(mapping);
+			const choice = mappingToChoice(
+				mapping,
+				this.plugin.settings.subvaultsFolder,
+			);
 			const verb = choice.operation === "copy" ? "Copy" : "Move";
 
 			this.plugin.addCommand({

@@ -12,6 +12,7 @@ import { NO_FILENAME_CHANGES } from "./filename";
 /** The choice for a single mapping. */
 export function mappingToChoice(
 	mapping: FolderMapping,
+	subvaultsFolder: string,
 	forcedOperation?: FileOperation,
 ): FolderChoice {
 	return {
@@ -25,6 +26,7 @@ export function mappingToChoice(
 			standardizeFilename: mapping.standardizeFilename,
 		},
 		partitionByDate: mapping.partitionByDate,
+		subvaultsFolder,
 	};
 }
 
@@ -38,6 +40,7 @@ export function vaultRootChoice(
 		operation,
 		filenameOptions: NO_FILENAME_CHANGES,
 		partitionByDate: false,
+		subvaultsFolder: "",
 	};
 }
 
@@ -45,13 +48,15 @@ export function vaultRootChoice(
 export function customFolderChoice(
 	folderPath: string,
 	operation: FileOperation = "move",
+	label?: string,
 ): FolderChoice {
 	return {
-		label: folderPath || VAULT_ROOT_LABEL,
+		label: label ?? (folderPath || VAULT_ROOT_LABEL),
 		folderPath,
 		operation,
 		filenameOptions: NO_FILENAME_CHANGES,
 		partitionByDate: false,
+		subvaultsFolder: "",
 	};
 }
 
@@ -68,7 +73,13 @@ export function buildFolderChoices(
 ): FolderChoice[] {
 	const choices = settings.folderMappings
 		.filter((mapping) => mapping.folderPath !== "")
-		.map((mapping) => mappingToChoice(mapping, options.forcedOperation));
+		.map((mapping) =>
+			mappingToChoice(
+				mapping,
+				settings.subvaultsFolder,
+				options.forcedOperation,
+			),
+		);
 
 	if (options.includeVaultRoot) {
 		choices.unshift(vaultRootChoice(options.forcedOperation));

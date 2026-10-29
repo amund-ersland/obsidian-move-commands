@@ -16,6 +16,7 @@ export const COMMAND_IDS = {
 	MOVE_TO_ROOT: "move-to-root",
 	MOVE_TO_PARENT: "move-to-parent",
 	MOVE_TO_NEW_FOLDER: "move-to-new-folder",
+	MOVE_TO_SUBVAULT: "move-to-other-subvault",
 } as const;
 
 /** Names shown for those commands in the command palette. */
@@ -25,7 +26,14 @@ export const COMMAND_NAMES = {
 	MOVE_TO_ROOT: "Move current file to vault root",
 	MOVE_TO_PARENT: "Move current file to parent folder",
 	MOVE_TO_NEW_FOLDER: "Create new folder and move file there",
+	MOVE_TO_SUBVAULT: "Move current file to another subvault",
 } as const;
+
+/** Stands for the active file's subvault in a mapping's folder path. */
+export const SUBVAULT_PLACEHOLDER = "{SUBVAULT}";
+
+/** Default folder whose child folders are the subvaults. */
+export const DEFAULT_SUBVAULTS_FOLDER = "subvaults";
 
 /** How the vault root is presented wherever a destination is named. */
 export const VAULT_ROOT_LABEL = "Vault root";

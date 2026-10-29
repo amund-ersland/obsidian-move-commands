@@ -18,16 +18,34 @@ without touching the file explorer.
 | `Move current file to vault root` | Moves the active file to the top level of the vault. |
 | `Move current file to parent folder` | Moves the active file one folder level up. |
 | `Create new folder and move file there` | Prompts for a folder path, creates it, and moves the active file into it. |
+| `Move current file to another subvault` | Moves the active file to the same relative folder in another subvault. Moves at once when there is only one other subvault; else shows a picker. |
 
 Bind any of them under **Settings → Hotkeys** (search for "Move Commands").
 
 ## Settings
 
-**Settings → Move Commands** holds a list of folder mappings. Per mapping:
+**Settings → Move Commands** holds the subvaults folder and a list of folder
+mappings.
+
+### Subvaults
+
+**Subvaults folder** (default `subvaults`) is a folder whose child folders are
+subvaults, each with its own folder tree — for example `subvaults/1-programming`
+and `subvaults/2-anteo`. Write `{SUBVAULT}` in a mapping's folder path to put
+the file in the active file's subvault:
+
+- `{SUBVAULT}/3-content/6-tasks` sends `subvaults/2-anteo/a/note.md` to
+  `subvaults/2-anteo/3-content/6-tasks`.
+- `meta-content/tasks` (no placeholder) is always relative to the vault root.
+- A `{SUBVAULT}` mapping refuses to move a file that is in no subvault.
+
+### Folder mappings
+
+Per mapping:
 
 | Setting | Effect |
 | --- | --- |
-| Folder path | Vault-relative destination. Missing folders — including nested ones — are created on first use. |
+| Folder path | Vault-relative destination, or subvault-relative with `{SUBVAULT}`. Missing folders — including nested ones — are created on first use. |
 | Display name | Shown in the command palette and the folder pickers. |
 | Copy instead of move | Leaves the original in place and duplicates it. |
 | Partition by date | Places the file in a `YYYY/MM` subfolder, dated by its cepoch, timestamp or epoch prefix (today when the name has none): `3-content/1-zettels/2026/10/ozik9t_my-note.md`. Missing folders are created. |

@@ -1,3 +1,4 @@
+import { DEFAULT_SUBVAULTS_FOLDER } from "../constants";
 import { normalizeFolderPath } from "../services/vault-paths";
 import type { FolderMapping, MoveCommandsSettings } from "./types";
 
@@ -12,7 +13,7 @@ import type { FolderMapping, MoveCommandsSettings } from "./types";
 
 /** A fresh, empty settings object. */
 export function createDefaultSettings(): MoveCommandsSettings {
-	return { folderMappings: [] };
+	return { folderMappings: [], subvaultsFolder: DEFAULT_SUBVAULTS_FOLDER };
 }
 
 /** A blank mapping for the "Add folder mapping" button. */
@@ -49,7 +50,11 @@ export function normalizeSettings(data: unknown): MoveCommandsSettings {
 			return true;
 		});
 
-	return { folderMappings };
+	const subvaultsFolder =
+		normalizeFolderPath(asString(raw.subvaultsFolder)) ||
+		DEFAULT_SUBVAULTS_FOLDER;
+
+	return { folderMappings, subvaultsFolder };
 }
 
 function normalizeMapping(

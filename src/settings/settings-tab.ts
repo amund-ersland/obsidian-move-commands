@@ -1,8 +1,13 @@
 import { PluginSettingTab, Setting } from "obsidian";
 import type { App } from "obsidian";
-import { VAULT_ROOT_LABEL } from "../constants";
+import {
+	DEFAULT_SUBVAULTS_FOLDER,
+	SUBVAULT_PLACEHOLDER,
+	VAULT_ROOT_LABEL,
+} from "../constants";
 import { applyFilenameOptions } from "../services/filename";
 import { datePartition } from "../services/partition";
+import { normalizeFolderPath } from "../services/vault-paths";
 import { createFolderMapping } from "./defaults";
 import type { FolderMapping } from "./types";
 import type MoveCommandsPlugin from "../main";
@@ -31,6 +36,23 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 
 		containerEl.empty();
 		containerEl.addClass("move-commands-settings");
+
+		new Setting(containerEl)
+			.setName("Subvaults folder")
+			.setDesc(
+				`Each folder inside it is a subvault with its own folder tree. Write ${SUBVAULT_PLACEHOLDER} in a mapping's folder path to land in the active file's subvault.`,
+			)
+			.addText((text) =>
+				text
+					.setPlaceholder(DEFAULT_SUBVAULTS_FOLDER)
+					.setValue(this.plugin.settings.subvaultsFolder)
+					.onChange(async (value) => {
+						this.plugin.settings.subvaultsFolder =
+							normalizeFolderPath(value) ||
+							DEFAULT_SUBVAULTS_FOLDER;
+						await this.plugin.saveSettings();
+					}),
+			);
 
 		new Setting(containerEl)
 			.setName("Folder mappings")
@@ -103,10 +125,12 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 
 		new Setting(section)
 			.setName("Folder path")
-			.setDesc("Vault-relative path. Missing folders are created.")
+			.setDesc(
+				`Vault-relative path. Start it with ${SUBVAULT_PLACEHOLDER}/ to resolve it inside the active file's subvault. Missing folders are created.`,
+			)
 			.addText((text) =>
 				text
-					.setPlaceholder("3-content/1-zettels")
+					.setPlaceholder(`${SUBVAULT_PLACEHOLDER}/3-content/1-zettels`)
 					.setValue(mapping.folderPath)
 					.onChange(async (value) => {
 						mapping.folderPath = value.trim();

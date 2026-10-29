@@ -5,6 +5,7 @@ import {
 	copyFileToFolder,
 	moveFileToFolder,
 } from "../services/file-operations";
+import { resolveSubvaultPath } from "../services/subvaults";
 import type { FolderChoice } from "../types";
 import { describeError } from "../utils/errors";
 
@@ -41,19 +42,24 @@ export async function runFileOperation(
 	const originalName = file.name;
 
 	try {
+		const folderPath = resolveSubvaultPath(
+			choice.folderPath,
+			file.path,
+			choice.subvaultsFolder,
+		);
 		const result =
 			choice.operation === "copy"
 				? await copyFileToFolder(
 						app,
 						file,
-						choice.folderPath,
+						folderPath,
 						choice.filenameOptions,
 						choice.partitionByDate,
 					)
 				: await moveFileToFolder(
 						app,
 						file,
-						choice.folderPath,
+						folderPath,
 						choice.filenameOptions,
 						choice.partitionByDate,
 					);

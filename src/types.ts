@@ -64,4 +64,10 @@ export interface FolderChoice {
 	 * its filename prefix (see `src/services/partition.ts`).
 	 */
 	partitionByDate: boolean;
+
+	/**
+	 * Folder whose child folders are the subvaults a `{SUBVAULT}` in
+	 * {@link folderPath} is resolved against, by the active file's location.
+	 */
+	subvaultsFolder: string;
 }
