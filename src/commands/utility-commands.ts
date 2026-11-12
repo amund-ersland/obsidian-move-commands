@@ -89,9 +89,15 @@ function openFolderPicker(
 			? "Duplicate current file to…"
 			: "Move current file to…";
 
-	new FolderSuggestModal(plugin.app, choices, placeholder, (choice) => {
-		void runFileOperation(plugin.app, choice);
-	}).open();
+	new FolderSuggestModal(
+		plugin.app,
+		choices,
+		placeholder,
+		plugin.settings.subvaultsFolder,
+		(choice) => {
+			void runFileOperation(plugin.app, choice);
+		},
+	).open();
 }
 
 /** Moves the active file one folder level up. */
@@ -175,6 +181,7 @@ function moveToOtherSubvault(plugin: MoveCommandsPlugin): void {
 		plugin.app,
 		choices,
 		"Move current file to subvault…",
+		subvaultsFolder,
 		(choice) => {
 			void runFileOperation(plugin.app, choice);
 		},
