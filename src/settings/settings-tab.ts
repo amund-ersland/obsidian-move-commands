@@ -55,9 +55,25 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Add a command per mapping")
+			.setDesc(
+				"Off: reach the folders only through Show quick move menu — one " +
+					"hotkey, then type to search. Hotkeys bound to the per-mapping " +
+					"commands stop working.",
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.mappingCommands)
+					.onChange(async (value) => {
+						this.plugin.settings.mappingCommands = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
 			.setName("Folder mappings")
 			.setDesc(
-				"Each mapping adds a command you can bind under Settings → Hotkeys.",
+				"Each mapping is a named folder in the quick move menu, and optionally its own command.",
 			)
 			.setHeading()
 			.addButton((button) =>

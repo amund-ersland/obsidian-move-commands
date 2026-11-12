@@ -13,7 +13,11 @@ import type { FolderMapping, MoveCommandsSettings } from "./types";
 
 /** A fresh, empty settings object. */
 export function createDefaultSettings(): MoveCommandsSettings {
-	return { folderMappings: [], subvaultsFolder: DEFAULT_SUBVAULTS_FOLDER };
+	return {
+		folderMappings: [],
+		subvaultsFolder: DEFAULT_SUBVAULTS_FOLDER,
+		mappingCommands: true,
+	};
 }
 
 /** A blank mapping for the "Add folder mapping" button. */
@@ -54,7 +58,11 @@ export function normalizeSettings(data: unknown): MoveCommandsSettings {
 		normalizeFolderPath(asString(raw.subvaultsFolder)) ||
 		DEFAULT_SUBVAULTS_FOLDER;
 
-	return { folderMappings, subvaultsFolder };
+	// Missing means saved before the option existed: keep the commands, so
+	// hotkeys bound to them keep working.
+	const mappingCommands = raw.mappingCommands !== false;
+
+	return { folderMappings, subvaultsFolder, mappingCommands };
 }
 
 function normalizeMapping(

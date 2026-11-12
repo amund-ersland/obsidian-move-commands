@@ -2,9 +2,10 @@
 
 Move or copy the active file into preconfigured folders with hotkeys.
 
-Each folder you configure becomes its own command, so you can bind
-<kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd> to "move to Zettels" and file a note
-without touching the file explorer.
+Give each folder a name, bind one hotkey to **Show quick move menu**, and pick
+the folder by typing part of its name. If you prefer, each folder can also
+get its own command, so you can bind <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>1</kbd>
+to "move to Zettels".
 
 ---
 
@@ -12,7 +13,7 @@ without touching the file explorer.
 
 | Command | What it does |
 | --- | --- |
-| `Move current file to <name>` | One per configured folder mapping. Moves — or copies, if the mapping says so — the active file there. |
+| `Move current file to <name>` | One per configured folder mapping, when **Add a command per mapping** is on. Moves — or copies, if the mapping says so — the active file there. |
 | `Show quick move menu` | Fuzzy picker over every configured folder plus the vault root. Each destination keeps its own move/copy and filename settings. |
 | `Show duplicate to folder menu` | Same picker, but always copies and opens the copy in a new tab. |
 | `Move current file to vault root` | Moves the active file to the top level of the vault. |
@@ -24,8 +25,12 @@ Bind any of them under **Settings → Hotkeys** (search for "Move Commands").
 
 ## Settings
 
-**Settings → Move Commands** holds the subvaults folder and a list of folder
-mappings.
+**Settings → Move Commands** holds the subvaults folder, the
+**Add a command per mapping** toggle, and a list of folder mappings.
+
+Turn **Add a command per mapping** off to keep the command palette short: the
+folders are then reached only through the quick move menu. Hotkeys bound to
+the per-mapping commands stop working while it is off.
 
 ### Subvaults
 

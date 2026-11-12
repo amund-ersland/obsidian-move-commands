@@ -31,6 +31,12 @@ export interface MoveCommandsSettings {
 	folderMappings: FolderMapping[];
 
 	/**
+	 * Add one command per mapping. Off means the mappings are reached only
+	 * through the quick move menu, which keeps the command palette short.
+	 */
+	mappingCommands: boolean;
+
+	/**
 	 * Folder whose child folders are subvaults, each holding a full folder
 	 * tree, e.g. `subvaults` with `subvaults/1-programming` and
 	 * `subvaults/2-anteo` (see `src/services/subvaults.ts`).

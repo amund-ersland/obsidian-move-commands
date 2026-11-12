@@ -33,6 +33,10 @@ export class FolderCommandRegistry {
 	refresh(): void {
 		this.removeAll();
 
+		if (!this.plugin.settings.mappingCommands) {
+			return;
+		}
+
 		for (const mapping of this.plugin.settings.folderMappings) {
 			// A mapping without a folder is an unfinished settings row.
 			if (!mapping.folderPath) {

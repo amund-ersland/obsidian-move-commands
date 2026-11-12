@@ -1,5 +1,5 @@
 import { FuzzySuggestModal } from "obsidian";
-import type { App } from "obsidian";
+import type { App, FuzzyMatch } from "obsidian";
 import type { FolderChoice } from "../types";
 
 /**
@@ -36,6 +36,16 @@ export class FolderSuggestModal extends FuzzySuggestModal<FolderChoice> {
 	/** Includes the path so a destination can be found by either name or path. */
 	getItemText(choice: FolderChoice): string {
 		return `${choice.label} · ${choice.folderPath || "/"}`;
+	}
+
+	/** Marks destinations that copy, since they look the same as moves. */
+	renderSuggestion(match: FuzzyMatch<FolderChoice>, el: HTMLElement): void {
+		super.renderSuggestion(match, el);
+		el.addClass("move-commands-suggestion");
+
+		if (match.item.operation === "copy") {
+			el.createSpan({ cls: "move-commands-suggestion-flag", text: "copy" });
+		}
 	}
 
 	onChooseItem(choice: FolderChoice): void {
