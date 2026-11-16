@@ -18,12 +18,22 @@
 	-webkit-user-select: none;
 }
 
+.move-commands-settings .move-commands-mapping-label {
+	flex-shrink: 0;
+	padding: 0 0.5rem;
+	border-radius: var(--radius-s);
+	background: var(--interactive-accent);
+	color: var(--text-on-accent);
+	font-weight: var(--font-semibold);
+	font-size: var(--font-ui-small);
+}
+
 .move-commands-settings .move-commands-mapping-title {
 	font-weight: var(--font-semibold);
 	color: var(--text-normal);
 }
 
-.move-commands-settings .move-commands-mapping-path,
+.move-commands-settings .move-commands-mapping-operation,
 .move-commands-settings .move-commands-preview {
 	color: var(--text-muted);
 	font-size: var(--font-ui-smaller);

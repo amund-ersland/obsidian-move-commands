@@ -72,8 +72,8 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 		new Setting(containerEl)
 			.setName("Use icons from Iconize")
 			.setDesc(
-				"Put each folder's Iconize icon in front of its name in commands " +
-					"and the quick move menu. Only emoji icons are used. Needs the " +
+				"Put each folder's Iconize icon in front of its name in commands, " +
+					"the quick move menu and these settings. Only emoji icons are used. Needs the " +
 					"Iconize plugin.",
 			)
 			.addToggle((toggle) =>
@@ -82,6 +82,7 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 					.onChange(async (value) => {
 						this.plugin.settings.useIconizeIcons = value;
 						await this.plugin.saveSettings();
+						this.display();
 					}),
 			);
 
@@ -124,11 +125,16 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 		const summary = section.createEl("summary", {
 			cls: "move-commands-mapping-summary",
 		});
+		// Name first, as a badge with its Iconize icon, so many mappings are
+		// easy to scan. Same layout as the Date Partitioning settings.
+		const label = summary.createSpan({
+			cls: "move-commands-mapping-label",
+		});
 		const title = summary.createSpan({
 			cls: "move-commands-mapping-title",
 		});
 		const subtitle = summary.createSpan({
-			cls: "move-commands-mapping-path",
+			cls: "move-commands-mapping-operation",
 		});
 
 		const preview = section.createEl("p", {
@@ -136,8 +142,13 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 		});
 
 		const refreshLabels = (): void => {
-			title.setText(mapping.displayName || `Mapping ${index + 1}`);
-			subtitle.setText(mapping.folderPath || VAULT_ROOT_LABEL);
+			const name = mapping.displayName.trim();
+			label.setText(
+				name ? this.plugin.decorateLabel(name, mapping.folderPath) : "",
+			);
+			label.toggle(name !== "");
+			title.setText(mapping.folderPath || VAULT_ROOT_LABEL);
+			subtitle.setText(mapping.copyInsteadOfMove ? "copy" : "move");
 			preview.setText(
 				`${mapping.copyInsteadOfMove ? "Copies" : "Moves"} as: ${applyFilenameOptions(
 					PREVIEW_FILENAME,
