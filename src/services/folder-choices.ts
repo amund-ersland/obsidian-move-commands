@@ -4,6 +4,12 @@ import type { FileOperation, FolderChoice } from "../types";
 import { NO_FILENAME_CHANGES } from "./filename";
 
 /**
+ * Turns a mapping's label into the label shown, e.g. by adding its Iconize
+ * icon. Gets the mapping's folder path, which may contain `{SUBVAULT}`.
+ */
+export type LabelDecorator = (label: string, folderPath: string) => string;
+
+/**
  * Turns configured mappings into the destination choices used by commands and
  * folder pickers, so both paths agree on labels, filename rules, and whether a
  * destination moves or copies.
@@ -14,9 +20,12 @@ export function mappingToChoice(
 	mapping: FolderMapping,
 	subvaultsFolder: string,
 	forcedOperation?: FileOperation,
+	decorateLabel?: LabelDecorator,
 ): FolderChoice {
+	const label = mapping.displayName || mapping.folderPath;
+
 	return {
-		label: mapping.displayName || mapping.folderPath,
+		label: decorateLabel ? decorateLabel(label, mapping.folderPath) : label,
 		folderPath: mapping.folderPath,
 		operation:
 			forcedOperation ?? (mapping.copyInsteadOfMove ? "copy" : "move"),
@@ -66,7 +75,11 @@ export function customFolderChoice(
  */
 export function buildFolderChoices(
 	settings: MoveCommandsSettings,
-	options: { includeVaultRoot: boolean; forcedOperation?: FileOperation },
+	options: {
+		includeVaultRoot: boolean;
+		forcedOperation?: FileOperation;
+		decorateLabel?: LabelDecorator;
+	},
 ): FolderChoice[] {
 	const choices = settings.folderMappings
 		.filter((mapping) => mapping.folderPath !== "")
@@ -75,6 +88,7 @@ export function buildFolderChoices(
 				mapping,
 				settings.subvaultsFolder,
 				options.forcedOperation,
+				options.decorateLabel,
 			),
 		);
 

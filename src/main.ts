@@ -1,6 +1,10 @@
 import { Plugin } from "obsidian";
 import { FolderCommandRegistry } from "./commands/folder-commands";
 import { registerUtilityCommands } from "./commands/utility-commands";
+import { SUBVAULT_PLACEHOLDER } from "./constants";
+import { IconizeIcons } from "./services/iconize";
+import { listSubvaults, subvaultOf } from "./services/subvaults";
+import { normalizeFolderPath } from "./services/vault-paths";
 import {
 	createDefaultSettings,
 	normalizeSettings,
@@ -20,6 +24,12 @@ export default class MoveCommandsPlugin extends Plugin {
 
 	private folderCommands: FolderCommandRegistry | null = null;
 
+	private readonly icons = new IconizeIcons(
+		this.app,
+		"Move Commands",
+		() => this.settings.useIconizeIcons,
+	);
+
 	async onload(): Promise<void> {
 		this.settings = normalizeSettings(await this.loadData());
 
@@ -28,12 +38,37 @@ export default class MoveCommandsPlugin extends Plugin {
 
 		registerUtilityCommands(this);
 		this.addSettingTab(new MoveCommandsSettingTab(this.app, this));
+
+		// Command names are fixed when registered. Iconize may load after this
+		// plugin, so register them again once every plugin has loaded.
+		this.app.workspace.onLayoutReady(() => this.folderCommands?.refresh());
 	}
 
 	onunload(): void {
 		this.folderCommands?.removeAll();
 		this.folderCommands = null;
 	}
+
+	/**
+	 * Puts the folder's Iconize icon in front of `label`. A `{SUBVAULT}`
+	 * path is looked up in the active file's subvault first, then in the
+	 * others, and the first folder with an icon is used.
+	 */
+	decorateLabel = (label: string, folderPath: string): string => {
+		const { subvaultsFolder } = this.settings;
+		const activePath = this.app.workspace.getActiveFile()?.path;
+		const current = activePath ? subvaultOf(activePath, subvaultsFolder) : null;
+		const subvaults = listSubvaults(this.app, subvaultsFolder).sort(
+			(a, b) => Number(b === current) - Number(a === current),
+		);
+		const paths = folderPath.includes(SUBVAULT_PLACEHOLDER)
+			? subvaults.map((subvault) =>
+					normalizeFolderPath(folderPath.split(SUBVAULT_PLACEHOLDER).join(subvault)),
+				)
+			: [normalizeFolderPath(folderPath)];
+
+		return this.icons.decorate(label, paths);
+	};
 
 	/**
 	 * Persists settings and re-syncs the per-folder commands, so an added,

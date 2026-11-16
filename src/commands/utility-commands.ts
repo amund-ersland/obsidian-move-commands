@@ -77,6 +77,7 @@ function openFolderPicker(
 	const choices = buildFolderChoices(plugin.settings, {
 		includeVaultRoot: true,
 		forcedOperation: operation === "copy" ? "copy" : undefined,
+		decorateLabel: plugin.decorateLabel,
 	});
 
 	if (choices.length === 0) {

@@ -17,6 +17,7 @@ export function createDefaultSettings(): MoveCommandsSettings {
 		folderMappings: [],
 		subvaultsFolder: DEFAULT_SUBVAULTS_FOLDER,
 		mappingCommands: true,
+		useIconizeIcons: false,
 	};
 }
 
@@ -61,7 +62,9 @@ export function normalizeSettings(data: unknown): MoveCommandsSettings {
 	// hotkeys bound to them keep working.
 	const mappingCommands = raw.mappingCommands !== false;
 
-	return { folderMappings, subvaultsFolder, mappingCommands };
+	const useIconizeIcons = asBoolean(raw.useIconizeIcons);
+
+	return { folderMappings, subvaultsFolder, mappingCommands, useIconizeIcons };
 }
 
 function normalizeMapping(

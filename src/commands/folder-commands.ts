@@ -47,6 +47,8 @@ export class FolderCommandRegistry {
 			const choice = mappingToChoice(
 				mapping,
 				this.plugin.settings.subvaultsFolder,
+				undefined,
+				this.plugin.decorateLabel,
 			);
 			const verb = choice.operation === "copy" ? "Copy" : "Move";
 

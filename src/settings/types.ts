@@ -39,4 +39,10 @@ export interface MoveCommandsSettings {
 	 * `subvaults/2-anteo` (see `src/services/subvaults.ts`).
 	 */
 	subvaultsFolder: string;
+
+	/**
+	 * Put each folder's Iconize icon (emoji only) in front of its label.
+	 * Needs the Iconize plugin; off by default.
+	 */
+	useIconizeIcons: boolean;
 }

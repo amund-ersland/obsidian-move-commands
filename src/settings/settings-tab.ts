@@ -70,6 +70,22 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 			);
 
 		new Setting(containerEl)
+			.setName("Use icons from Iconize")
+			.setDesc(
+				"Put each folder's Iconize icon in front of its name in commands " +
+					"and the quick move menu. Only emoji icons are used. Needs the " +
+					"Iconize plugin.",
+			)
+			.addToggle((toggle) =>
+				toggle
+					.setValue(this.plugin.settings.useIconizeIcons)
+					.onChange(async (value) => {
+						this.plugin.settings.useIconizeIcons = value;
+						await this.plugin.saveSettings();
+					}),
+			);
+
+		new Setting(containerEl)
 			.setName("Folder mappings")
 			.setDesc(
 				"Each mapping is a named folder in the quick move menu, and optionally its own command.",
