@@ -30,7 +30,6 @@ export function createFolderMapping(): FolderMapping {
 		addCepochPrefix: false,
 		copyInsteadOfMove: false,
 		standardizeFilename: true,
-		partitionByDate: false,
 	};
 }
 
@@ -80,7 +79,6 @@ function normalizeMapping(
 		addCepochPrefix: asBoolean(entry.addCepochPrefix),
 		copyInsteadOfMove: asBoolean(entry.copyInsteadOfMove),
 		standardizeFilename: asBoolean(entry.standardizeFilename),
-		partitionByDate: asBoolean(entry.partitionByDate),
 	};
 }
 

@@ -54,14 +54,12 @@ export async function runFileOperation(
 						file,
 						folderPath,
 						choice.filenameOptions,
-						choice.partitionByDate,
 					)
 				: await moveFileToFolder(
 						app,
 						file,
 						folderPath,
 						choice.filenameOptions,
-						choice.partitionByDate,
 					);
 
 		if (result.unchanged) {

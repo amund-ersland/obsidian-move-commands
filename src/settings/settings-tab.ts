@@ -6,7 +6,6 @@ import {
 	VAULT_ROOT_LABEL,
 } from "../constants";
 import { applyFilenameOptions } from "../services/filename";
-import { datePartition } from "../services/partition";
 import { normalizeFolderPath } from "../services/vault-paths";
 import { createFolderMapping } from "./defaults";
 import type { FolderMapping } from "./types";
@@ -123,12 +122,11 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 		const refreshLabels = (): void => {
 			title.setText(mapping.displayName || `Mapping ${index + 1}`);
 			subtitle.setText(mapping.folderPath || VAULT_ROOT_LABEL);
-			const filename = applyFilenameOptions(PREVIEW_FILENAME, mapping);
-			const partition = mapping.partitionByDate
-				? `${datePartition(filename)}/`
-				: "";
 			preview.setText(
-				`${mapping.copyInsteadOfMove ? "Copies" : "Moves"} as: ${partition}${filename}`,
+				`${mapping.copyInsteadOfMove ? "Copies" : "Moves"} as: ${applyFilenameOptions(
+					PREVIEW_FILENAME,
+					mapping,
+				)}`,
 			);
 		};
 
@@ -175,22 +173,6 @@ export class MoveCommandsSettingTab extends PluginSettingTab {
 					.setValue(mapping.copyInsteadOfMove)
 					.onChange(async (value) => {
 						mapping.copyInsteadOfMove = value;
-						await save();
-					}),
-			);
-
-		new Setting(section)
-			.setName("Partition by date")
-			.setDesc(
-				"Place the file in a YYYY/MM subfolder, dated by its cepoch or " +
-					"timestamp prefix (today when the name has none). Missing " +
-					"folders are created.",
-			)
-			.addToggle((toggle) =>
-				toggle
-					.setValue(mapping.partitionByDate)
-					.onChange(async (value) => {
-						mapping.partitionByDate = value;
 						await save();
 					}),
 			);

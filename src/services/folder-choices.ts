@@ -25,7 +25,6 @@ export function mappingToChoice(
 			addCepochPrefix: mapping.addCepochPrefix,
 			standardizeFilename: mapping.standardizeFilename,
 		},
-		partitionByDate: mapping.partitionByDate,
 		subvaultsFolder,
 	};
 }
@@ -39,7 +38,6 @@ export function vaultRootChoice(
 		folderPath: "",
 		operation,
 		filenameOptions: NO_FILENAME_CHANGES,
-		partitionByDate: false,
 		subvaultsFolder: "",
 	};
 }
@@ -55,7 +53,6 @@ export function customFolderChoice(
 		folderPath,
 		operation,
 		filenameOptions: NO_FILENAME_CHANGES,
-		partitionByDate: false,
 		subvaultsFolder: "",
 	};
 }

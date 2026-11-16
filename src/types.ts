@@ -60,12 +60,6 @@ export interface FolderChoice {
 	filenameOptions: FilenameOptions;
 
 	/**
-	 * Land the file in a `YYYY/MM` subfolder of {@link folderPath}, dated by
-	 * its filename prefix (see `src/services/partition.ts`).
-	 */
-	partitionByDate: boolean;
-
-	/**
 	 * Folder whose child folders are the subvaults a `{SUBVAULT}` in
 	 * {@link folderPath} is resolved against, by the active file's location.
 	 */
